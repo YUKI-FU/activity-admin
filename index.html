@@ -1,0 +1,1479 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>活动管理后台</title>
+  <style>
+    :root {
+      --primary: #1890ff;
+      --primary-hover: #40a9ff;
+      --success: #52c41a;
+      --warning: #faad14;
+      --danger: #ff4d4f;
+      --text: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --border: #e8e8e8;
+      --bg: #f5f7fa;
+      --card: #fff;
+      --sidebar: #001529;
+      --sidebar-active: #1890ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 200px; background: var(--sidebar); flex-shrink: 0; }
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .header { height: 50px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
+    .content { flex: 1; padding: 16px; overflow: auto; }
+    .logo { height: 50px; display: flex; align-items: center; padding: 0 16px; color: #fff; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .logo svg { width: 24px; height: 24px; margin-right: 8px; }
+    .menu { padding: 8px 0; }
+    .menu-item { display: flex; align-items: center; padding: 10px 16px; color: rgba(255,255,255,.65); cursor: pointer; transition: all .2s; font-size: 14px; }
+    .menu-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+    .menu-item.active { color: #fff; background: var(--sidebar-active); }
+    .menu-item svg { width: 16px; height: 16px; margin-right: 10px; flex-shrink: 0; }
+    .menu-group-title { padding: 8px 16px; color: rgba(255,255,255,.35); font-size: 12px; }
+    .tabs { display: flex; gap: 0; background: var(--card); border-bottom: 1px solid var(--border); padding: 0 16px; }
+    .tab { padding: 12px 20px; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: all .2s; font-size: 14px; }
+    .tab:hover { color: var(--primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 14px; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; cursor: pointer; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { color: var(--text); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card { background: var(--card); border-radius: 4px; margin-bottom: 16px; }
+    .card-body { padding: 16px; }
+    .filter-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+    .form-item { display: flex; flex-direction: column; gap: 4px; }
+    .form-item label { font-size: 13px; color: var(--text-secondary); }
+    .form-item input, .form-item select { height: 32px; padding: 0 11px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; outline: none; min-width: 140px; }
+    .form-item input:focus, .form-item select:focus { border-color: var(--primary); }
+    .btn { height: 32px; padding: 0 15px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s; background: var(--card); color: var(--text); white-space: nowrap; }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+    .btn-link { background: transparent; border: none; color: var(--primary); padding: 0; height: auto; }
+    .btn-link:hover { text-decoration: underline; }
+    .btn-link.danger { color: var(--danger); }
+    .btn-group { display: flex; gap: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+    th { background: #fafafa; font-weight: 500; color: var(--text-secondary); white-space: nowrap; }
+    tr:hover td { background: #fafafa; }
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .tag-blue { background: #e6f7ff; color: #1890ff; }
+    .tag-green { background: #f6ffed; color: #52c41a; }
+    .tag-orange { background: #fff7e6; color: #fa8c16; }
+    .tag-red { background: #fff2f0; color: #ff4d4f; }
+    .tag-gray { background: #f5f5f5; color: #8c8c8c; }
+    .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .pagination span { color: var(--text-secondary); font-size: 13px; }
+    .page-btn { min-width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--card); font-size: 13px; }
+    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-start; justify-content: center; z-index: 1000; padding: 60px 20px; overflow: auto; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--card); border-radius: 8px; width: 100%; max-width: 800px; max-height: calc(100vh - 120px); overflow: hidden; display: flex; flex-direction: column; }
+    .modal-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-header h3 { font-size: 16px; font-weight: 500; }
+    .modal-close { width: 24px; height: 24px; border: none; background: transparent; cursor: pointer; color: var(--text-muted); font-size: 18px; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 12px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-sm { max-width: 420px; }
+    .modal-lg { max-width: 1000px; }
+    .config-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .config-form .full { grid-column: 1 / -1; }
+    .config-form .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .config-form label { font-size: 13px; color: var(--text-secondary); }
+    .config-form .req { color: var(--danger); }
+    .config-form input, .config-form select, .config-form textarea { padding: 8px 11px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; outline: none; }
+    .config-form textarea { min-height: 80px; resize: vertical; }
+    .section { margin-top: 24px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-title { font-size: 14px; font-weight: 500; }
+    .empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 13px; }
+    .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 4px; font-size: 14px; z-index: 2000; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+    .confirm-icon { width: 48px; height: 48px; border-radius: 50%; background: #fff7e6; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .confirm-text { text-align: center; font-size: 15px; margin-bottom: 24px; }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-trigger { cursor: pointer; color: var(--primary); font-size: 13px; }
+    .dropdown-menu { position: absolute; top: 100%; right: 0; background: var(--card); border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.15); min-width: 80px; z-index: 100; display: none; }
+    .dropdown-menu.show { display: block; }
+    .dropdown-item { padding: 8px 16px; cursor: pointer; font-size: 13px; color: var(--primary); }
+    .dropdown-item:hover { background: #f5f5f5; }
+    .dropdown-item.danger { color: var(--danger); }
+    .action-btn { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; }
+    .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .action-btn.success { border-color: var(--success); color: var(--success); }
+    .page-content { display: none; }
+    .page-content.active { display: block; }
+    /* 统计卡片 */
+    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+    .stat-card { background: var(--card); border-radius: 8px; padding: 20px; border: 1px solid var(--border); }
+    .stat-card .label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 600; color: var(--text); }
+    .stat-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    /* 详情页Tab */
+    .detail-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .detail-tab { padding: 12px 24px; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; font-size: 14px; }
+    .detail-tab:hover { color: var(--primary); }
+    .detail-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+    .detail-content { display: none; }
+    .detail-content.active { display: block; }
+    /* 任务卡片 */
+    .task-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all .2s; }
+    .task-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(24,144,255,.1); }
+    .task-card .task-name { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .task-card .task-stats { display: flex; gap: 24px; }
+    .task-card .task-stat { display: flex; flex-direction: column; }
+    .task-card .task-stat-label { font-size: 12px; color: var(--text-muted); }
+    .task-card .task-stat-value { font-size: 18px; font-weight: 600; color: var(--primary); }
+    /* 进度条 */
+    .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+    .progress-bar .progress { height: 100%; background: var(--primary); border-radius: 4px; }
+    /* 详情信息 */
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-item .info-label { font-size: 12px; color: var(--text-muted); }
+    .info-item .info-value { font-size: 14px; color: var(--text); }
+    /* 返回按钮 */
+    .back-btn { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); cursor: pointer; font-size: 14px; margin-bottom: 16px; }
+    .back-btn:hover { text-decoration: underline; }
+    @media (max-width: 900px) {
+      .stat-cards { grid-template-columns: repeat(2, 1fr); }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        易投资
+      </div>
+      <div class="menu">
+        <div class="menu-group-title">运营管理</div>
+        <div class="menu-item" onclick="switchMenu('airdrop')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          空投中心
+        </div>
+        <div class="menu-item active" id="menuActivity" onclick="switchTab('manage')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          活动管理
+        </div>
+        <div class="menu-group-title">审核管理</div>
+        <div class="menu-item" id="menuAudit" onclick="switchTab('audit')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          活动审核
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="header">
+        <div class="breadcrumb" id="breadcrumb">
+          运营管理 / <span>活动管理</span>
+        </div>
+        <div class="header-right">
+          <div class="avatar"></div>
+          <span>admin</span>
+        </div>
+      </div>
+
+      <div class="tabs" id="mainTabs">
+        <div class="tab" onclick="switchTab('audit')" id="tabAudit">活动审核</div>
+        <div class="tab active" onclick="switchTab('manage')" id="tabManage">活动管理</div>
+      </div>
+
+      <div class="content">
+        <!-- 活动审核页 -->
+        <div class="page-content" id="pageAudit">
+          <div class="card">
+            <div class="card-body">
+              <div class="filter-form">
+                <div class="form-item">
+                  <label>业务编号</label>
+                  <input type="text" id="auditFilterBizNo" placeholder="请输入业务编号"/>
+                </div>
+                <div class="form-item">
+                  <label>审核状态</label>
+                  <select id="auditFilterStatus">
+                    <option value="">全部</option>
+                    <option value="pending">待审核</option>
+                    <option value="approved">已通过</option>
+                    <option value="rejected">已拒绝</option>
+                  </select>
+                </div>
+                <div class="form-item">
+                  <label>活动类型</label>
+                  <select id="auditFilterType">
+                    <option value="">全部</option>
+                    <option value="lottery">抽奖活动</option>
+                    <option value="normal">常规活动</option>
+                  </select>
+                </div>
+                <div class="btn-group">
+                  <button class="btn btn-primary" onclick="searchAuditList()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    搜索
+                  </button>
+                  <button class="btn" onclick="resetAuditFilter()">重置</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div class="btn-group">
+                  <button class="btn btn-primary" onclick="openConfigModal()">+ 新增</button>
+                  <button class="btn" id="btnBatchAudit" onclick="batchAudit()" disabled style="background:#faad14;border-color:#faad14;color:#fff;">批量审核</button>
+                  <span style="color: var(--text-muted); font-size: 13px; margin-left: 8px;">已选择 <strong id="selectedCount" style="color: var(--primary);">0</strong> 项</span>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:40px;"><input type="checkbox" id="auditCheckAll" onchange="toggleAuditCheckAll()"/></th>
+                    <th>活动名称</th>
+                    <th>业务编号</th>
+                    <th>活动类型</th>
+                    <th>操作人</th>
+                    <th>审核行为</th>
+                    <th>提交时间</th>
+                    <th>已等待时间</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="auditTableBody"></tbody>
+              </table>
+              <div class="pagination">
+                <span>共 <span id="auditTotal">0</span> 条</span>
+                <select style="height:32px;border:1px solid var(--border);border-radius:4px;padding:0 8px;font-size:13px;" id="auditPageSize">
+                  <option value="10">10条/页</option>
+                  <option value="20">20条/页</option>
+                </select>
+                <button class="page-btn">&lt;</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">&gt;</button>
+                <span>前往</span>
+                <input type="number" style="width:50px;height:32px;border:1px solid var(--border);border-radius:4px;text-align:center;" value="1" min="1"/>
+                <span>页</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 活动管理页 -->
+        <div class="page-content active" id="pageManage">
+          <div class="card">
+            <div class="card-body">
+              <div class="filter-form">
+                <div class="form-item">
+                  <label>活动ID</label>
+                  <input type="text" id="manageFilterId" placeholder="请输入活动ID"/>
+                </div>
+                <div class="form-item">
+                  <label>活动名称</label>
+                  <input type="text" id="manageFilterName" placeholder="请输入活动名称"/>
+                </div>
+                <div class="form-item">
+                  <label>上/下架</label>
+                  <select id="manageFilterShelf">
+                    <option value="">全部</option>
+                    <option value="on">上架</option>
+                    <option value="off">下架</option>
+                  </select>
+                </div>
+                <div class="btn-group">
+                  <button class="btn btn-primary" onclick="searchManageList()">搜索</button>
+                  <button class="btn" onclick="resetManageFilter()">重置</button>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>活动ID</th>
+                    <th>活动名称</th>
+                    <th>活动编号</th>
+                    <th>开始时间</th>
+                    <th>到期时间</th>
+                    <th>上/下架</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="manageTableBody"></tbody>
+              </table>
+              <div class="pagination">
+                <span>共 <span id="manageTotal">0</span> 条</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 活动数据详情页 -->
+        <div class="page-content" id="pageDetail">
+          <div class="back-btn" onclick="goToList()">← 返回活动列表</div>
+
+          <div class="detail-tabs">
+            <div class="detail-tab active" onclick="switchDetailTab('info')">活动详情</div>
+            <div class="detail-tab" onclick="switchDetailTab('users')">用户数据</div>
+            <div class="detail-tab" onclick="switchDetailTab('tasks')">任务统计</div>
+            <div class="detail-tab" onclick="switchDetailTab('lottery')">抽奖记录</div>
+            <div class="detail-tab" onclick="switchDetailTab('rewards')">奖励记录</div>
+          </div>
+
+          <!-- 活动详情 -->
+          <div class="detail-content active" id="detailInfo">
+            <div class="card">
+              <div class="card-body">
+                <h3 style="margin-bottom: 16px; font-size: 16px;">基础信息</h3>
+                <div class="info-grid" id="activityInfoGrid"></div>
+                <h3 style="margin: 24px 0 16px; font-size: 16px;">里程碑配置</h3>
+                <table>
+                  <thead><tr><th>节点类型</th><th>触发条件</th><th>里程碑描述</th><th>奖励描述</th><th>抽奖次数</th><th>有效时间</th></tr></thead>
+                  <tbody id="detailMilestoneBody"></tbody>
+                </table>
+                <h3 style="margin: 24px 0 16px; font-size: 16px;">奖池配置</h3>
+                <table>
+                  <thead><tr><th>奖励类型</th><th>奖励名称</th><th>概率</th><th>库存</th></tr></thead>
+                  <tbody id="detailPrizeBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 用户数据 -->
+          <div class="detail-content" id="detailUsers">
+            <div class="stat-cards">
+              <div class="stat-card"><div class="label">参与用户数</div><div class="value" id="statUsers">1,256</div></div>
+              <div class="stat-card"><div class="label">总抽奖次数</div><div class="value" id="statLotteryTotal">3,890</div></div>
+              <div class="stat-card"><div class="label">已使用次数</div><div class="value" id="statLotteryUsed">2,456</div></div>
+              <div class="stat-card"><div class="label">中奖总数</div><div class="value" id="statWinTotal">1,823</div></div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <div class="filter-form">
+                  <div class="form-item">
+                    <label>用户名/UID</label>
+                    <input type="text" id="userFilterKeyword" placeholder="请输入"/>
+                  </div>
+                  <div class="form-item">
+                    <label>是否认证</label>
+                    <select id="userFilterKyc">
+                      <option value="">全部</option>
+                      <option value="yes">已认证</option>
+                      <option value="no">未认证</option>
+                    </select>
+                  </div>
+                  <div class="form-item">
+                    <label>任务完成情况</label>
+                    <select id="userFilterTask">
+                      <option value="">全部</option>
+                      <option value="all">全部完成</option>
+                      <option value="partial">部分完成</option>
+                      <option value="none">未完成</option>
+                    </select>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-primary" onclick="searchUserList()">搜索</button>
+                    <button class="btn" onclick="resetUserFilter()">重置</button>
+                    <button class="btn" onclick="exportUserList()">导出</button>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>用户名</th>
+                      <th>UID</th>
+                      <th>获得抽奖次数</th>
+                      <th>已使用次数</th>
+                      <th>剩余次数</th>
+                      <th>Token中奖次数</th>
+                      <th>任务完成</th>
+                      <th>最近参与时间</th>
+                      <th>是否认证</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="userTableBody"></tbody>
+                </table>
+                <div class="pagination"><span>共 <span id="userTotal">0</span> 条</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 任务统计 -->
+          <div class="detail-content" id="detailTasks">
+            <div class="card">
+              <div class="card-body">
+                <h3 style="margin-bottom: 16px; font-size: 16px;">任务完成情况</h3>
+                <div id="taskCards"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 抽奖记录 -->
+          <div class="detail-content" id="detailLottery">
+            <div class="card">
+              <div class="card-body">
+                <div class="filter-form">
+                  <div class="form-item">
+                    <label>用户名/UID</label>
+                    <input type="text" id="lotteryFilterKeyword" placeholder="请输入"/>
+                  </div>
+                  <div class="form-item">
+                    <label>奖励类型</label>
+                    <select id="lotteryFilterType">
+                      <option value="">全部</option>
+                      <option value="TOKEN">Token奖励</option>
+                      <option value="VOUCHER">券类</option>
+                      <option value="POINTS">积分</option>
+                      <option value="NONE">未中奖</option>
+                    </select>
+                  </div>
+                  <div class="form-item">
+                    <label>状态</label>
+                    <select id="lotteryFilterStatus">
+                      <option value="">全部</option>
+                      <option value="claimed">已领取</option>
+                      <option value="pending">待领取</option>
+                      <option value="expired">已失效</option>
+                    </select>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-primary" onclick="searchLotteryList()">搜索</button>
+                    <button class="btn" onclick="resetLotteryFilter()">重置</button>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>UID</th>
+                      <th>用户名</th>
+                      <th>抽奖时间</th>
+                      <th>消耗次数</th>
+                      <th>抽中奖励</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lotteryTableBody"></tbody>
+                </table>
+                <div class="pagination"><span>共 <span id="lotteryTotal">0</span> 条</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 奖励记录 -->
+          <div class="detail-content" id="detailRewards">
+            <div class="card">
+              <div class="card-body">
+                <div class="filter-form">
+                  <div class="form-item">
+                    <label>用户名/UID</label>
+                    <input type="text" id="rewardFilterKeyword" placeholder="请输入"/>
+                  </div>
+                  <div class="form-item">
+                    <label>奖励类型</label>
+                    <select id="rewardFilterType">
+                      <option value="">全部</option>
+                      <option value="TOKEN">Token</option>
+                      <option value="VOUCHER">券类</option>
+                      <option value="POINTS">积分</option>
+                    </select>
+                  </div>
+                  <div class="form-item">
+                    <label>发放状态</label>
+                    <select id="rewardFilterStatus">
+                      <option value="">全部</option>
+                      <option value="success">成功</option>
+                      <option value="failed">失败</option>
+                      <option value="processing">处理中</option>
+                    </select>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-primary" onclick="searchRewardList()">搜索</button>
+                    <button class="btn" onclick="resetRewardFilter()">重置</button>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>UID</th>
+                      <th>用户名</th>
+                      <th>奖励名称</th>
+                      <th>奖励类型</th>
+                      <th>奖励数量</th>
+                      <th>发放状态</th>
+                      <th>发放时间</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rewardTableBody"></tbody>
+                </table>
+                <div class="pagination"><span>共 <span id="rewardTotal">0</span> 条</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 任务详情页 -->
+        <div class="page-content" id="pageTaskDetail">
+          <div class="back-btn" onclick="backToTasks()">← 返回任务统计</div>
+          <div class="card">
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item"><div class="info-label">任务名称</div><div class="info-value" id="taskDetailName">—</div></div>
+                <div class="info-item"><div class="info-label">任务规则</div><div class="info-value" id="taskDetailRule">—</div></div>
+                <div class="info-item"><div class="info-label">获得奖励</div><div class="info-value" id="taskDetailReward">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="detail-tabs" style="margin-top: 16px;">
+            <div class="detail-tab active" onclick="switchTaskUserTab('all')">全部用户</div>
+            <div class="detail-tab" onclick="switchTaskUserTab('completed')">已完成用户</div>
+            <div class="detail-tab" onclick="switchTaskUserTab('incomplete')">未完成用户</div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <table>
+                <thead>
+                  <tr>
+                    <th>UID</th>
+                    <th>用户名</th>
+                    <th>当前进度</th>
+                    <th>是否完成</th>
+                    <th>获得次数</th>
+                  </tr>
+                </thead>
+                <tbody id="taskUserTableBody"></tbody>
+              </table>
+              <div class="pagination"><span>共 <span id="taskUserTotal">0</span> 条</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 配置弹窗 -->
+  <div class="modal-overlay" id="configModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="configModalTitle">新增活动配置</h3>
+        <button class="modal-close" onclick="closeConfigModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="config-form">
+          <div class="form-group"><label><span class="req">*</span> 活动名称</label><input type="text" id="cfgName" placeholder="请输入活动名称"/></div>
+          <div class="form-group"><label><span class="req">*</span> 活动类型</label><select id="cfgType"><option value="lottery">抽奖活动</option><option value="normal">常规活动</option></select></div>
+          <div class="form-group"><label><span class="req">*</span> 活动状态</label><select id="cfgStatus"><option value="on">开启</option><option value="off">关闭</option></select></div>
+          <div class="form-group"><label><span class="req">*</span> 开始时间</label><input type="datetime-local" id="cfgStartTime"/></div>
+          <div class="form-group"><label><span class="req">*</span> 结束时间</label><input type="datetime-local" id="cfgEndTime"/></div>
+          <div class="form-group"><label><span class="req">*</span> 是否需要报名</label><select id="cfgNeedSignup"><option value="yes">是</option><option value="no">否</option></select></div>
+          <div class="form-group"><label><span class="req">*</span> 奖励发放方式</label><select id="cfgDelivery"><option value="ops">运营发放</option><option value="manual">用户手动领取</option></select></div>
+          <div class="form-group full"><label>活动规则说明</label><textarea id="cfgRule" placeholder="请输入规则说明"></textarea></div>
+          <div class="form-group full"><label>活动描述</label><textarea id="cfgDesc" placeholder="请输入活动描述"></textarea></div>
+        </div>
+        <div class="section">
+          <div class="section-header"><span class="section-title">里程碑任务配置</span><button class="btn btn-primary" id="btnAddMilestone" onclick="openMilestoneModal()">+ 新增里程碑</button></div>
+          <table><thead><tr><th>节点类型</th><th>触发条件</th><th>里程碑描述</th><th>奖励描述</th><th>抽奖次数</th><th>有效时间</th><th id="milestoneOpHeader">操作</th></tr></thead><tbody id="milestoneTableBody"></tbody></table>
+          <div class="empty" id="milestoneEmpty">暂无里程碑</div>
+        </div>
+        <div class="section">
+          <div class="section-header"><div style="display:flex;gap:16px;align-items:center;"><span class="section-title">奖池配置</span><span style="font-size:13px;color:var(--text-muted);">概率合计：<strong id="probSum" style="color:var(--primary);">0</strong>%</span></div><button class="btn btn-primary" id="btnAddPrize" onclick="openPrizeModal()">+ 新增奖品</button></div>
+          <table><thead><tr><th>奖励类型</th><th>奖励名称</th><th>币种</th><th>数量</th><th>上限</th><th>库存</th><th>概率</th><th id="prizeOpHeader">操作</th></tr></thead><tbody id="prizeTableBody"></tbody></table>
+          <div class="empty" id="prizeEmpty">暂无奖品</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnCancelConfig" onclick="closeConfigModal()">取消</button>
+        <button class="btn btn-primary" id="btnSaveConfig" onclick="saveConfig()">保存配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 里程碑弹窗 -->
+  <div class="modal-overlay" id="milestoneModal">
+    <div class="modal modal-sm">
+      <div class="modal-header"><h3 id="milestoneModalTitle">新增里程碑</h3><button class="modal-close" onclick="closeMilestoneModal()">&times;</button></div>
+      <div class="modal-body">
+        <div class="config-form" style="grid-template-columns:1fr;">
+          <div class="form-group"><label><span class="req">*</span> 节点类型</label><select id="mNodeType" onchange="onNodeTypeChange()"><option value="KYC">KYC</option><option value="FTT">FTT</option><option value="TRADE_VOLUME">交易额</option><option value="NET_DEPOSIT">净入金</option><option value="INVITE">邀请人数</option><option value="DOWNLOAD_APP">下载APP</option><option value="FOLLOW">关注账号</option></select></div>
+          <div class="form-group" id="triggerBoolGroup"><label>触发条件</label><select id="mTriggerBool"><option value="yes">是</option><option value="no">否</option></select></div>
+          <div class="form-group" id="triggerNumberGroup" style="display:none;"><label>触发值</label><input type="number" id="mTriggerNumber" min="0" placeholder="请输入数字"/></div>
+          <div class="form-group" id="triggerFollowGroup" style="display:none;"><label>关注平台</label><select id="mTriggerFollow"><option value="X">X (Twitter)</option><option value="Telegram">Telegram</option><option value="Discord">Discord</option><option value="Instagram">Instagram</option></select></div>
+          <div class="form-group"><label><span class="req">*</span> 里程碑描述</label><input type="text" id="mDesc" placeholder="前台展示文案"/></div>
+          <div class="form-group"><label><span class="req">*</span> 里程碑奖励描述</label><input type="text" id="mRewardDesc" placeholder="奖励展示文案"/></div>
+          <div class="form-group"><label><span class="req">*</span> 抽奖次数</label><input type="number" id="mLotteryTimes" min="1" value="1"/></div>
+          <div class="form-group"><label>任务领取有效时间</label><input type="number" id="mValidHours" min="24" max="8760" placeholder="范围24-8760小时"/></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn" onclick="closeMilestoneModal()">取消</button><button class="btn btn-primary" onclick="saveMilestone()">确定</button></div>
+    </div>
+  </div>
+
+  <!-- 奖品弹窗 -->
+  <div class="modal-overlay" id="prizeModal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-header"><h3 id="prizeModalTitle">新增奖品</h3><button class="modal-close" onclick="closePrizeModal()">&times;</button></div>
+      <div class="modal-body">
+        <div class="config-form" style="grid-template-columns:1fr;">
+          <div class="form-group"><label><span class="req">*</span> 奖励类型</label><select id="pType" onchange="onPrizeTypeChange()"><option value="TOKEN">Token奖励</option><option value="FEE_VOUCHER">手续费抵扣券</option><option value="VIP_VOUCHER">VIP等级体验券</option><option value="SPOT_VOUCHER">现货仓位券</option><option value="POINTS">积分</option></select></div>
+
+          <!-- Token奖励字段 -->
+          <div class="form-group prize-field" data-types="TOKEN,FEE_VOUCHER,SPOT_VOUCHER,POINTS"><label><span class="req">*</span> 奖励名称</label><input type="text" id="pName" placeholder="请输入奖励名称"/></div>
+          <div class="form-group prize-field" data-types="TOKEN,FEE_VOUCHER,SPOT_VOUCHER"><label>奖励币种</label><select id="pCurrency"><option value="">请选择</option><option value="USDT">USDT</option><option value="BTC">BTC</option><option value="ETH">ETH</option></select></div>
+          <div class="form-group prize-field" data-types="TOKEN"><label>代币数量</label><input type="number" id="pAmount" min="0" step="0.0001"/></div>
+
+          <!-- 手续费抵扣券字段 -->
+          <div class="form-group prize-field" data-types="FEE_VOUCHER"><label>卡券数值</label><input type="number" id="pVoucherValue" min="0" step="0.01"/></div>
+          <div class="form-group prize-field" data-types="FEE_VOUCHER"><label>卡券有效天数</label><input type="number" id="pVoucherDays" min="1"/></div>
+          <div class="form-group prize-field" data-types="FEE_VOUCHER,VIP_VOUCHER,SPOT_VOUCHER"><label>单用户发放奖励次数</label><input type="number" id="pUserLimit" min="1" value="1"/></div>
+
+          <!-- VIP体验券字段 -->
+          <div class="form-group prize-field" data-types="VIP_VOUCHER"><label>VIP等级</label><select id="pVipLevel"><option value="V1">V1</option><option value="V2">V2</option><option value="V3">V3</option><option value="V4">V4</option></select></div>
+          <div class="form-group prize-field" data-types="VIP_VOUCHER"><label>VIP等级体验天数</label><input type="number" id="pVipDays" min="1"/></div>
+          <div class="form-group prize-field" data-types="VIP_VOUCHER"><label>VIP体验有效天数</label><input type="number" id="pVipValidDays" min="1"/></div>
+
+          <!-- 积分字段 -->
+          <div class="form-group prize-field" data-types="POINTS"><label>积分数值</label><input type="number" id="pPointsValue" min="1"/></div>
+
+          <!-- 现货仓位券字段 -->
+          <div class="form-group prize-field" data-types="SPOT_VOUCHER"><label>卡券数值</label><input type="number" id="pSpotValue" min="0" step="0.01"/></div>
+          <div class="form-group prize-field" data-types="SPOT_VOUCHER"><label>仓位时效(天)</label><input type="number" id="pSpotDuration" min="1"/></div>
+          <div class="form-group prize-field" data-types="SPOT_VOUCHER"><label>现货仓位券有效天数</label><input type="number" id="pSpotValidDays" min="1"/></div>
+          <div class="form-group prize-field" data-types="SPOT_VOUCHER"><label>是否不限币对</label><select id="pSpotUnlimited" onchange="onSpotUnlimitedChange()"><option value="yes">是</option><option value="no">否</option></select></div>
+          <div class="form-group prize-field" data-types="SPOT_VOUCHER" id="pSpotPairsGroup" style="display:none;"><label>可交易币对</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:4px;font-weight:normal;"><input type="checkbox" id="pPairBTC" value="BTC/USDT"/> BTC/USDT</label>
+              <label style="display:flex;align-items:center;gap:4px;font-weight:normal;"><input type="checkbox" id="pPairETH" value="ETH/USDT"/> ETH/USDT</label>
+              <label style="display:flex;align-items:center;gap:4px;font-weight:normal;"><input type="checkbox" id="pPairDOGE" value="DOGE/USDT"/> DOGE/USDT</label>
+            </div>
+          </div>
+
+          <!-- 通用字段 -->
+          <div class="form-group"><label>是否有上限</label><select id="pHasLimit" onchange="onHasLimitChange()"><option value="no">否</option><option value="yes">是</option></select></div>
+          <div class="form-group" id="pStockGroup" style="display:none;"><label>库存数量</label><input type="number" id="pStock" min="0"/></div>
+          <div class="form-group"><label><span class="req">*</span> 抽奖概率(%)</label><input type="number" id="pProbability" min="0" max="100" step="0.01"/></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn" onclick="closePrizeModal()">取消</button><button class="btn btn-primary" onclick="savePrize()">确定</button></div>
+    </div>
+  </div>
+
+  <!-- 审核弹窗 -->
+  <div class="modal-overlay" id="auditModal">
+    <div class="modal modal-sm">
+      <div class="modal-header"><h3>审核操作</h3><button class="modal-close" onclick="closeAuditModal()">&times;</button></div>
+      <div class="modal-body">
+        <div class="config-form" style="grid-template-columns:1fr;">
+          <div class="form-group"><label><span class="req">*</span> 审核结果</label><select id="auditResult"><option value="approved">通过</option><option value="rejected">拒绝</option></select></div>
+          <div class="form-group"><label>审核备注</label><textarea id="auditRemark" placeholder="请输入审核备注"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn" onclick="closeAuditModal()">取消</button><button class="btn btn-primary" onclick="submitAudit()">确认</button></div>
+    </div>
+  </div>
+
+  <!-- 确认弹窗 -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal modal-sm">
+      <div class="modal-header"><h3>二次确认</h3><button class="modal-close" onclick="closeConfirmModal()">&times;</button></div>
+      <div class="modal-body" style="text-align:center;padding:32px;">
+        <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#faad14" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+        <div class="confirm-text" id="confirmText">确认操作？</div>
+      </div>
+      <div class="modal-footer" style="justify-content:center;"><button class="btn" onclick="closeConfirmModal()">取消</button><button class="btn btn-primary" onclick="confirmAction()">确定</button></div>
+    </div>
+  </div>
+
+  <!-- 用户详情弹窗 -->
+  <div class="modal-overlay" id="userDetailModal">
+    <div class="modal modal-lg">
+      <div class="modal-header"><h3>用户详情</h3><button class="modal-close" onclick="closeUserDetailModal()">&times;</button></div>
+      <div class="modal-body" id="userDetailContent"></div>
+      <div class="modal-footer"><button class="btn" onclick="closeUserDetailModal()">关闭</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const AUDIT_KEY = "activity_audit_v3";
+const MANAGE_KEY = "activity_manage_v3";
+
+let auditList = [];
+let manageList = [];
+let tempMilestones = [];
+let tempPrizes = [];
+let editingMilestoneIdx = -1;
+let editingPrizeIdx = -1;
+let currentActivityId = null;
+let currentTaskIdx = -1;
+let confirmCallback = null;
+let auditingIds = [];
+
+const nodeTypes = { KYC:"KYC认证", FTT:"FTT", TRADE_VOLUME:"交易额", NET_DEPOSIT:"净入金", INVITE:"邀请人数", DOWNLOAD_APP:"下载APP", FOLLOW:"关注账号" };
+const prizeTypes = { TOKEN:"Token奖励", FEE_VOUCHER:"手续费抵扣券", VIP_VOUCHER:"VIP等级体验券", SPOT_VOUCHER:"现货仓位券", POINTS:"积分" };
+const statusMap = { pending:{text:"待审核",class:"tag-orange"}, approved:{text:"已通过",class:"tag-green"}, rejected:{text:"已拒绝",class:"tag-red"} };
+
+function toast(msg) { const el=$("toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("show"),2000); }
+function uid() { return "TP-ACTIVITY-"+Date.now()+"-"+Math.floor(Math.random()*100000); }
+function formatDate(d) { if(!d) return "—"; const date=new Date(d), pad=n=>n.toString().padStart(2,"0"); return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`; }
+function escapeHtml(s) { return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// 模拟数据生成
+function generateMockUsers(count=50) {
+  const users = [];
+  for(let i=0; i<count; i++) {
+    const totalTimes = Math.floor(Math.random()*10)+1;
+    const usedTimes = Math.floor(Math.random()*(totalTimes+1));
+    const winCount = Math.floor(Math.random()*(usedTimes+1));
+    users.push({
+      uid: 100000+i,
+      username: `user_${100000+i}`,
+      totalTimes, usedTimes, remainTimes: totalTimes-usedTimes,
+      winCount, winValue: (winCount*Math.random()*10).toFixed(2)+" USDT",
+      taskProgress: `${Math.floor(Math.random()*5)+1}/5`,
+      lastTime: new Date(Date.now()-Math.random()*30*24*3600000).toISOString(),
+      registerTime: new Date(Date.now()-Math.random()*365*24*3600000).toISOString(),
+      isKyc: Math.random()>0.3,
+      kycTime: Math.random()>0.3 ? new Date(Date.now()-Math.random()*180*24*3600000).toISOString() : null,
+      assetAccount: `AC${100000+i}`
+    });
+  }
+  return users;
+}
+
+function generateMockLotteryRecords(count=30) {
+  const records = [];
+  const prizes = ["USDT 10","USDT 1","手续费券 5U","积分 100","未中奖"];
+  const statuses = ["claimed","pending","expired"];
+  for(let i=0; i<count; i++) {
+    const prize = prizes[Math.floor(Math.random()*prizes.length)];
+    records.push({
+      uid: 100000+Math.floor(Math.random()*50),
+      username: `user_${100000+Math.floor(Math.random()*50)}`,
+      time: new Date(Date.now()-Math.random()*7*24*3600000).toISOString(),
+      usedTimes: 1,
+      prize,
+      prizeValue: prize.includes("未中奖") ? "—" : prize,
+      status: prize.includes("未中奖") ? "expired" : statuses[Math.floor(Math.random()*2)]
+    });
+  }
+  return records;
+}
+
+function generateMockRewardRecords(count=20) {
+  const records = [];
+  const rewards = [{name:"USDT 10",type:"TOKEN",amount:"10 USDT"},{name:"手续费券",type:"VOUCHER",amount:"5 USDT"},{name:"积分",type:"POINTS",amount:"100"}];
+  const statuses = ["success","failed","processing"];
+  for(let i=0; i<count; i++) {
+    const reward = rewards[Math.floor(Math.random()*rewards.length)];
+    records.push({
+      uid: 100000+Math.floor(Math.random()*50),
+      username: `user_${100000+Math.floor(Math.random()*50)}`,
+      ...reward,
+      status: statuses[Math.floor(Math.random()*statuses.length)],
+      time: new Date(Date.now()-Math.random()*7*24*3600000).toISOString()
+    });
+  }
+  return records;
+}
+
+// 加载数据
+function loadData() {
+  try { auditList = JSON.parse(localStorage.getItem(AUDIT_KEY)) || []; } catch(e) { auditList = []; }
+  try { manageList = JSON.parse(localStorage.getItem(MANAGE_KEY)) || []; } catch(e) { manageList = []; }
+  if(auditList.length===0) {
+    auditList = [
+      { id:"TP-ACTIVITY-202606121002-88877", activityId:80, name:"测试", type:"lottery", status:"pending", operator:"admin", auditAction:"创建", submitTime:"2026-06-12T19:01:30.000Z", milestones:[{nodeType:"KYC",triggerValue:"Lv2",desc:"完成KYC认证",rewardDesc:"获得1次抽奖",lotteryTimes:1},{nodeType:"TRADE_VOLUME",triggerValue:"≥1000 USDT",desc:"交易1000U",rewardDesc:"获得2次抽奖",lotteryTimes:2}], prizes:[{type:"TOKEN",name:"USDT 10",currency:"USDT",amount:10,hasLimit:"yes",stock:100,probability:5},{type:"POINTS",name:"积分100",currency:"",amount:100,hasLimit:"no",stock:0,probability:50}] },
+      { id:"TP-ACTIVITY-202604230605-79214", activityId:69, name:"测试邀请人", type:"lottery", status:"approved", operator:"admin", auditAction:"创建", submitTime:"2026-04-22T00:00:00.000Z", startTime:new Date().toISOString(), endTime:new Date(Date.now()+30*86400000).toISOString(), milestones:[{nodeType:"INVITE",triggerValue:"≥5人",desc:"邀请5位好友",rewardDesc:"获得3次抽奖",lotteryTimes:3}], prizes:[{type:"TOKEN",name:"USDT 5",currency:"USDT",amount:5,hasLimit:"yes",stock:500,probability:10},{type:"FEE_VOUCHER",name:"手续费券",currency:"",amount:0,hasLimit:"yes",stock:1000,probability:40}] }
+    ];
+    localStorage.setItem(AUDIT_KEY, JSON.stringify(auditList));
+  }
+  if(manageList.length===0) {
+    const approved = auditList.filter(a=>a.status==="approved");
+    manageList = approved.map(a=>({...a, shelf:"on", participants:Math.floor(Math.random()*1000)+100}));
+    localStorage.setItem(MANAGE_KEY, JSON.stringify(manageList));
+  }
+}
+
+function saveAuditData() { localStorage.setItem(AUDIT_KEY, JSON.stringify(auditList)); }
+function saveManageData() { localStorage.setItem(MANAGE_KEY, JSON.stringify(manageList)); }
+
+// Tab切换
+function switchTab(tab) {
+  $("tabAudit").classList.toggle("active", tab==="audit");
+  $("tabManage").classList.toggle("active", tab==="manage");
+  $("pageAudit").classList.toggle("active", tab==="audit");
+  $("pageManage").classList.toggle("active", tab==="manage");
+  $("pageDetail").classList.remove("active");
+  $("pageTaskDetail").classList.remove("active");
+  $("mainTabs").style.display = "flex";
+  $("breadcrumb").innerHTML = `运营管理 / <span>${tab==="audit"?"活动审核":"活动管理"}</span>`;
+  // 更新侧边栏菜单选中状态
+  $("menuActivity").classList.toggle("active", tab==="manage");
+  $("menuAudit").classList.toggle("active", tab==="audit");
+}
+
+function goToList() {
+  $("pageDetail").classList.remove("active");
+  $("pageTaskDetail").classList.remove("active");
+  $("pageManage").classList.add("active");
+  $("mainTabs").style.display = "flex";
+  $("breadcrumb").innerHTML = `运营管理 / <span>活动管理</span>`;
+}
+
+function switchDetailTab(tab) {
+  document.querySelectorAll("#pageDetail .detail-tab").forEach((el,i)=>el.classList.toggle("active",["info","users","tasks","lottery","rewards"][i]===tab));
+  document.querySelectorAll("#pageDetail .detail-content").forEach(el=>el.classList.remove("active"));
+  $("detail"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add("active");
+}
+
+// 计算等待天数
+function calcWaitDays(submitTime) {
+  if(!submitTime) return "—";
+  const diff = Date.now() - new Date(submitTime).getTime();
+  const days = Math.floor(diff / (24*3600*1000));
+  return days + "天";
+}
+
+// 审核列表
+function renderAuditList() {
+  const tbody = $("auditTableBody");
+  $("auditTotal").textContent = auditList.length;
+  if(auditList.length===0) { tbody.innerHTML = `<tr><td colspan="10" class="empty">暂无数据</td></tr>`; return; }
+  tbody.innerHTML = auditList.map(item=>`
+    <tr>
+      <td><input type="checkbox" class="audit-check" data-id="${item.id}" onchange="updateSelectedCount()" ${item.status!=="pending"?"disabled":""}/></td>
+      <td>${escapeHtml(item.name)}</td>
+      <td style="font-size:12px;color:var(--text-muted);">${item.id}</td>
+      <td><span class="btn-link">${item.type==="lottery"?"抽奖活动":"常规活动"}</span></td>
+      <td>${item.operator||"admin"}</td>
+      <td><span class="btn-link">${item.auditAction||"创建"}</span></td>
+      <td>${formatDate(item.submitTime)}</td>
+      <td>${calcWaitDays(item.submitTime)}</td>
+      <td><span style="color:${item.status==="pending"?"var(--warning)":item.status==="approved"?"var(--primary)":"var(--danger)"}">${statusMap[item.status]?.text}</span></td>
+      <td>${item.status==="pending"?`<span class="btn-link" onclick="auditItem('${item.id}')">审核</span>`:""}<span class="btn-link" onclick="viewAuditItem('${item.id}')" style="margin-left:8px;">查看</span></td>
+    </tr>
+  `).join("");
+  $("auditCheckAll").checked = false;
+  updateSelectedCount();
+}
+
+function searchAuditList() { renderAuditList(); }
+function resetAuditFilter() { $("auditFilterBizNo").value=""; $("auditFilterStatus").value=""; $("auditFilterType").value=""; renderAuditList(); }
+function toggleAuditCheckAll() { const checked=$("auditCheckAll").checked; document.querySelectorAll(".audit-check:not(:disabled)").forEach(cb=>cb.checked=checked); updateSelectedCount(); }
+function updateSelectedCount() { const count=document.querySelectorAll(".audit-check:checked").length; $("selectedCount").textContent=count; $("btnBatchAudit").disabled=count===0; }
+
+// 管理列表
+function renderManageList() {
+  const tbody = $("manageTableBody");
+  $("manageTotal").textContent = manageList.length;
+  if(manageList.length===0) { tbody.innerHTML = `<tr><td colspan="7" class="empty">暂无数据</td></tr>`; return; }
+  tbody.innerHTML = manageList.map(item=>`
+    <tr>
+      <td>${item.activityId}</td>
+      <td>${escapeHtml(item.name)}</td>
+      <td style="font-size:12px;color:var(--text-muted);">${item.id}</td>
+      <td>${formatDate(item.startTime)}</td>
+      <td>${formatDate(item.endTime)}</td>
+      <td><button class="action-btn ${item.shelf==="on"?"success":""}" onclick="toggleShelf('${item.id}')">${item.shelf==="on"?"上架":"下架"}</button></td>
+      <td>
+        <span class="btn-link" onclick="editManageItem('${item.id}')">编辑</span>
+        <span class="btn-link" onclick="toggleShelf('${item.id}')" style="margin-left:8px;">${item.shelf==="on"?"下架":"上架"}</span>
+        <div class="dropdown" style="display:inline-block;margin-left:8px;">
+          <span class="dropdown-trigger" onclick="toggleDropdown(this)">更多▼</span>
+          <div class="dropdown-menu">
+            <div class="dropdown-item" onclick="viewActivityData('${item.id}')">查看</div>
+            <div class="dropdown-item danger" onclick="deleteActivity('${item.id}')">删除</div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function searchManageList() { renderManageList(); }
+function resetManageFilter() { $("manageFilterId").value=""; $("manageFilterName").value=""; $("manageFilterShelf").value=""; renderManageList(); }
+function toggleDropdown(el) { document.querySelectorAll(".dropdown-menu.show").forEach(m=>m.classList.remove("show")); el.nextElementSibling.classList.toggle("show"); }
+document.addEventListener("click", e=>{ if(!e.target.closest(".dropdown")) document.querySelectorAll(".dropdown-menu.show").forEach(m=>m.classList.remove("show")); });
+
+function toggleShelf(id) {
+  const item = manageList.find(x=>x.id===id);
+  if(!item) return;
+  $("confirmText").textContent = `确认要${item.shelf==="on"?"下架":"上架"}此活动吗？`;
+  confirmCallback = ()=>{ item.shelf = item.shelf==="on"?"off":"on"; saveManageData(); renderManageList(); toast("操作成功"); };
+  $("confirmModal").classList.add("show");
+}
+
+function deleteActivity(id) {
+  $("confirmText").textContent = "确认删除此活动？";
+  confirmCallback = ()=>{ manageList = manageList.filter(x=>x.id!==id); saveManageData(); renderManageList(); toast("已删除"); };
+  $("confirmModal").classList.add("show");
+}
+
+function editManageItem(id) { openConfigModal(null, id); }
+
+// 查看活动数据
+function viewActivityData(id) {
+  currentActivityId = id;
+  const item = manageList.find(x=>x.id===id);
+  if(!item) return;
+
+  $("mainTabs").style.display = "none";
+  $("pageManage").classList.remove("active");
+  $("pageAudit").classList.remove("active");
+  $("pageDetail").classList.add("active");
+  $("breadcrumb").innerHTML = `运营管理 / <a onclick="goToList()">活动管理</a> / <span>${escapeHtml(item.name)}</span>`;
+
+  // 活动详情Tab
+  $("activityInfoGrid").innerHTML = `
+    <div class="info-item"><div class="info-label">活动名称</div><div class="info-value">${escapeHtml(item.name)}</div></div>
+    <div class="info-item"><div class="info-label">活动ID</div><div class="info-value">${item.activityId}</div></div>
+    <div class="info-item"><div class="info-label">活动类型</div><div class="info-value">${item.type==="lottery"?"抽奖活动":"常规活动"}</div></div>
+    <div class="info-item"><div class="info-label">开始时间</div><div class="info-value">${formatDate(item.startTime)}</div></div>
+    <div class="info-item"><div class="info-label">结束时间</div><div class="info-value">${formatDate(item.endTime)}</div></div>
+    <div class="info-item"><div class="info-label">状态</div><div class="info-value">${item.shelf==="on"?"上架中":"已下架"}</div></div>
+  `;
+  $("detailMilestoneBody").innerHTML = (item.milestones||[]).map(m=>`<tr><td>${nodeTypes[m.nodeType]||m.nodeType}</td><td>${formatTriggerValue(m.nodeType, m.triggerValue)}</td><td>${escapeHtml(m.desc)}</td><td>${escapeHtml(m.rewardDesc)||"—"}</td><td>${m.lotteryTimes||1}</td><td>${m.validHours?m.validHours+"小时":"—"}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">暂无配置</td></tr>`;
+  $("detailPrizeBody").innerHTML = (item.prizes||[]).map(p=>`<tr><td>${prizeTypes[p.type]||p.type}</td><td>${escapeHtml(p.name)}</td><td>${p.probability}%</td><td>${p.hasLimit==="yes"?p.stock:"不限"}</td></tr>`).join("") || `<tr><td colspan="4" class="empty">暂无配置</td></tr>`;
+
+  // 用户数据Tab
+  renderUserList();
+
+  // 任务统计Tab
+  renderTaskCards(item);
+
+  // 抽奖记录Tab
+  renderLotteryList();
+
+  // 奖励记录Tab
+  renderRewardList();
+
+  switchDetailTab("info");
+}
+
+// 用户数据
+function renderUserList() {
+  const users = generateMockUsers();
+  $("userTotal").textContent = users.length;
+  $("statUsers").textContent = users.length.toLocaleString();
+  $("statLotteryTotal").textContent = users.reduce((a,u)=>a+u.totalTimes,0).toLocaleString();
+  $("statLotteryUsed").textContent = users.reduce((a,u)=>a+u.usedTimes,0).toLocaleString();
+  $("statWinTotal").textContent = users.reduce((a,u)=>a+u.winCount,0).toLocaleString();
+  $("userTableBody").innerHTML = users.slice(0,20).map(u=>`
+    <tr>
+      <td>${escapeHtml(u.username)}</td>
+      <td>${u.uid}</td>
+      <td>${u.totalTimes}</td>
+      <td>${u.usedTimes}</td>
+      <td>${u.remainTimes}</td>
+      <td>${u.winCount}</td>
+      <td>${u.taskProgress}</td>
+      <td>${formatDate(u.lastTime)}</td>
+      <td style="color:${u.isKyc?"var(--primary)":"var(--text-muted)"}">${u.isKyc?"已认证":"未认证"}</td>
+      <td><span class="btn-link" onclick="viewUserDetail(${u.uid})">详情</span></td>
+    </tr>
+  `).join("");
+}
+
+function searchUserList() { renderUserList(); toast("已刷新"); }
+function resetUserFilter() { $("userFilterKeyword").value=""; $("userFilterKyc").value=""; $("userFilterTask").value=""; renderUserList(); }
+function exportUserList() { toast("导出功能开发中"); }
+
+function viewUserDetail(uid) {
+  $("userDetailContent").innerHTML = `
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">UID</div><div class="info-value">${uid}</div></div>
+      <div class="info-item"><div class="info-label">用户名</div><div class="info-value">user_${uid}</div></div>
+      <div class="info-item"><div class="info-label">注册时间</div><div class="info-value">${formatDate(new Date(Date.now()-Math.random()*365*86400000))}</div></div>
+      <div class="info-item"><div class="info-label">KYC状态</div><div class="info-value"><span class="tag tag-green">已认证</span></div></div>
+      <div class="info-item"><div class="info-label">获得抽奖次数</div><div class="info-value">5次</div></div>
+      <div class="info-item"><div class="info-label">已使用/剩余</div><div class="info-value">3次/2次</div></div>
+    </div>
+    <h4 style="margin:16px 0 8px;">任务完成情况</h4>
+    <table><thead><tr><th>任务</th><th>当前进度</th><th>是否完成</th><th>获得次数</th></tr></thead>
+    <tbody>
+      <tr><td>KYC认证</td><td>Lv2</td><td><span class="tag tag-green">已完成</span></td><td>1次</td></tr>
+      <tr><td>交易1000U</td><td>850 USDT</td><td><span class="tag tag-orange">进行中</span></td><td>—</td></tr>
+    </tbody></table>
+    <h4 style="margin:16px 0 8px;">抽奖记录</h4>
+    <table><thead><tr><th>时间</th><th>奖励</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>${formatDate(new Date())}</td><td>USDT 1</td><td><span class="tag tag-green">已领取</span></td></tr>
+      <tr><td>${formatDate(new Date(Date.now()-86400000))}</td><td>积分100</td><td><span class="tag tag-green">已领取</span></td></tr>
+    </tbody></table>
+  `;
+  $("userDetailModal").classList.add("show");
+}
+function closeUserDetailModal() { $("userDetailModal").classList.remove("show"); }
+
+// 任务统计
+function renderTaskCards(item) {
+  const milestones = item.milestones || [];
+  if(milestones.length===0) { $("taskCards").innerHTML = `<div class="empty">暂无任务配置</div>`; return; }
+  $("taskCards").innerHTML = milestones.map((m,idx)=>{
+    const total = Math.floor(Math.random()*1000)+100;
+    const completed = Math.floor(total*Math.random());
+    const rate = Math.round(completed/total*100);
+    return `
+      <div class="task-card" onclick="viewTaskDetail(${idx})">
+        <div class="task-name">${nodeTypes[m.nodeType]||m.nodeType}${m.triggerValue?` (${m.triggerValue})`:""}</div>
+        <div style="margin-bottom:8px;">${escapeHtml(m.desc)}</div>
+        <div class="progress-bar" style="margin-bottom:8px;"><div class="progress" style="width:${rate}%"></div></div>
+        <div class="task-stats">
+          <div class="task-stat"><div class="task-stat-label">完成人数</div><div class="task-stat-value">${completed}</div></div>
+          <div class="task-stat"><div class="task-stat-label">完成率</div><div class="task-stat-value">${rate}%</div></div>
+          <div class="task-stat"><div class="task-stat-label">奖励次数</div><div class="task-stat-value">${m.lotteryTimes||1}次</div></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function viewTaskDetail(idx) {
+  currentTaskIdx = idx;
+  const item = manageList.find(x=>x.id===currentActivityId);
+  if(!item || !item.milestones || !item.milestones[idx]) return;
+  const m = item.milestones[idx];
+
+  $("pageDetail").classList.remove("active");
+  $("pageTaskDetail").classList.add("active");
+  $("breadcrumb").innerHTML = `运营管理 / <a onclick="goToList()">活动管理</a> / <a onclick="backToTasks()">${escapeHtml(item.name)}</a> / <span>任务详情</span>`;
+
+  $("taskDetailName").textContent = `${nodeTypes[m.nodeType]||m.nodeType}${m.triggerValue?` (${m.triggerValue})`:""}`;
+  $("taskDetailRule").textContent = m.desc || "—";
+  $("taskDetailReward").textContent = `${m.lotteryTimes||1}次抽奖机会`;
+
+  renderTaskUserList("all");
+}
+
+function backToTasks() {
+  $("pageTaskDetail").classList.remove("active");
+  $("pageDetail").classList.add("active");
+  const item = manageList.find(x=>x.id===currentActivityId);
+  $("breadcrumb").innerHTML = `运营管理 / <a onclick="goToList()">活动管理</a> / <span>${escapeHtml(item?.name||"")}</span>`;
+  switchDetailTab("tasks");
+}
+
+function switchTaskUserTab(tab) {
+  document.querySelectorAll("#pageTaskDetail .detail-tab").forEach((el,i)=>el.classList.toggle("active",["all","completed","incomplete"][i]===tab));
+  renderTaskUserList(tab);
+}
+
+function renderTaskUserList(tab) {
+  const users = [];
+  for(let i=0; i<30; i++) {
+    const progress = Math.floor(Math.random()*1500);
+    const isCompleted = progress >= 1000;
+    if(tab==="completed" && !isCompleted) continue;
+    if(tab==="incomplete" && isCompleted) continue;
+    users.push({ uid:100000+i, username:`user_${100000+i}`, progress:`${progress} USDT`, isCompleted, times: isCompleted?2:0 });
+  }
+  $("taskUserTotal").textContent = users.length;
+  $("taskUserTableBody").innerHTML = users.map(u=>`
+    <tr>
+      <td>${u.uid}</td>
+      <td>${u.username}</td>
+      <td>${u.progress}</td>
+      <td><span class="tag ${u.isCompleted?"tag-green":"tag-orange"}">${u.isCompleted?"已完成":"未完成"}</span></td>
+      <td>${u.times||"—"}</td>
+    </tr>
+  `).join("");
+}
+
+// 抽奖记录
+function renderLotteryList() {
+  const records = generateMockLotteryRecords();
+  $("lotteryTotal").textContent = records.length;
+  const statusText = {claimed:"已领取",pending:"待领取",expired:"已失效"};
+  const statusColor = {claimed:"var(--primary)",pending:"var(--warning)",expired:"var(--text-muted)"};
+  $("lotteryTableBody").innerHTML = records.map(r=>`
+    <tr>
+      <td>${r.uid}</td>
+      <td>${r.username}</td>
+      <td>${formatDate(r.time)}</td>
+      <td>${r.usedTimes}</td>
+      <td>${r.prize}</td>
+      <td style="color:${statusColor[r.status]}">${statusText[r.status]}</td>
+    </tr>
+  `).join("");
+}
+
+function searchLotteryList() { renderLotteryList(); toast("已刷新"); }
+function resetLotteryFilter() { $("lotteryFilterKeyword").value=""; $("lotteryFilterType").value=""; $("lotteryFilterStatus").value=""; renderLotteryList(); }
+
+// 奖励记录
+function renderRewardList() {
+  const records = generateMockRewardRecords();
+  $("rewardTotal").textContent = records.length;
+  const statusText = {success:"成功",failed:"失败",processing:"处理中"};
+  const statusClass = {success:"tag-green",failed:"tag-red",processing:"tag-orange"};
+  $("rewardTableBody").innerHTML = records.map(r=>`
+    <tr>
+      <td>${r.uid}</td>
+      <td>${r.username}</td>
+      <td>${r.name}</td>
+      <td>${r.type==="TOKEN"?"Token":r.type==="VOUCHER"?"券类":"积分"}</td>
+      <td>${r.amount}</td>
+      <td><span class="tag ${statusClass[r.status]}">${statusText[r.status]}</span></td>
+      <td>${formatDate(r.time)}</td>
+    </tr>
+  `).join("");
+}
+
+function searchRewardList() { renderRewardList(); toast("已刷新"); }
+function resetRewardFilter() { $("rewardFilterKeyword").value=""; $("rewardFilterType").value=""; $("rewardFilterStatus").value=""; renderRewardList(); }
+
+// 配置弹窗
+let isViewMode = false;
+function openConfigModal(auditId=null, manageId=null, viewOnly=false) {
+  isViewMode = viewOnly;
+  tempMilestones = [];
+  tempPrizes = [];
+  const item = auditId ? auditList.find(x=>x.id===auditId) : manageId ? manageList.find(x=>x.id===manageId) : null;
+  if(item) {
+    $("configModalTitle").textContent = viewOnly ? "查看活动配置" : "编辑活动配置";
+    $("cfgName").value = item.name||"";
+    $("cfgType").value = item.type||"lottery";
+    $("cfgStatus").value = item.activityStatus||"on";
+    $("cfgStartTime").value = item.startTime?.slice(0,16)||"";
+    $("cfgEndTime").value = item.endTime?.slice(0,16)||"";
+    $("cfgNeedSignup").value = item.needSignup||"yes";
+    $("cfgDelivery").value = item.delivery||"ops";
+    $("cfgRule").value = item.rule||"";
+    $("cfgDesc").value = item.desc||"";
+    tempMilestones = item.milestones?[...item.milestones]:[];
+    tempPrizes = item.prizes?[...item.prizes]:[];
+  } else {
+    $("configModalTitle").textContent = "新增活动配置";
+    $("cfgName").value=""; $("cfgType").value="lottery"; $("cfgStatus").value="on";
+    $("cfgStartTime").value=""; $("cfgEndTime").value="";
+    $("cfgNeedSignup").value="yes"; $("cfgDelivery").value="ops";
+    $("cfgRule").value=""; $("cfgDesc").value="";
+  }
+  // 设置只读模式
+  const formInputs = document.querySelectorAll("#configModal input, #configModal select, #configModal textarea");
+  formInputs.forEach(el => { el.disabled = viewOnly; });
+  // 隐藏/显示按钮
+  $("btnAddMilestone").style.display = viewOnly ? "none" : "inline-flex";
+  $("btnAddPrize").style.display = viewOnly ? "none" : "inline-flex";
+  $("btnSaveConfig").style.display = viewOnly ? "none" : "inline-flex";
+  $("btnCancelConfig").textContent = viewOnly ? "关闭" : "取消";
+
+  renderMilestoneTable();
+  renderPrizeTable();
+  $("configModal").classList.add("show");
+  $("configModal")._auditId = viewOnly ? null : auditId;
+  $("configModal")._manageId = viewOnly ? null : manageId;
+}
+function closeConfigModal() { $("configModal").classList.remove("show"); isViewMode = false; }
+
+function saveConfig() {
+  const name = $("cfgName").value.trim();
+  if(!name) { toast("请输入活动名称"); return; }
+  const config = {
+    name, type:$("cfgType").value, activityStatus:$("cfgStatus").value,
+    startTime:$("cfgStartTime").value, endTime:$("cfgEndTime").value,
+    needSignup:$("cfgNeedSignup").value, delivery:$("cfgDelivery").value,
+    rule:$("cfgRule").value, desc:$("cfgDesc").value,
+    milestones:tempMilestones, prizes:tempPrizes
+  };
+  const auditId = $("configModal")._auditId;
+  const manageId = $("configModal")._manageId;
+  if(auditId) {
+    const idx = auditList.findIndex(x=>x.id===auditId);
+    if(idx>=0) auditList[idx] = {...auditList[idx],...config};
+    saveAuditData();
+  } else if(manageId) {
+    const idx = manageList.findIndex(x=>x.id===manageId);
+    if(idx>=0) manageList[idx] = {...manageList[idx],...config};
+    saveManageData();
+  } else {
+    auditList.unshift({ id:uid(), activityId:Math.max(0,...auditList.map(x=>x.activityId||0),...manageList.map(x=>x.activityId||0))+1, ...config, status:"pending", submitTime:new Date().toISOString() });
+    saveAuditData();
+    switchTab("audit");
+  }
+  closeConfigModal();
+  renderAuditList();
+  renderManageList();
+  toast("保存成功");
+}
+
+// 格式化触发条件显示
+function formatTriggerValue(nodeType, value) {
+  if(!value) return "—";
+  const triggerType = nodeTypeTrigger[nodeType] || "bool";
+  if(triggerType==="bool") return value==="yes"?"是":"否";
+  if(triggerType==="number") return "≥"+value;
+  if(triggerType==="follow") return value;
+  return value;
+}
+
+// 里程碑
+function renderMilestoneTable() {
+  const tbody = $("milestoneTableBody");
+  $("milestoneEmpty").style.display = tempMilestones.length?"none":"block";
+  $("milestoneOpHeader").style.display = isViewMode?"none":"";
+  tbody.innerHTML = tempMilestones.map((m,idx)=>`
+    <tr><td>${nodeTypes[m.nodeType]||m.nodeType}</td><td>${formatTriggerValue(m.nodeType, m.triggerValue)}</td><td>${escapeHtml(m.desc)}</td><td>${escapeHtml(m.rewardDesc)||"—"}</td><td>${m.lotteryTimes||1}</td><td>${m.validHours?m.validHours+"小时":"—"}</td>
+    <td style="display:${isViewMode?"none":""}"><span class="btn-link" onclick="editMilestone(${idx})">编辑</span><span class="btn-link danger" onclick="deleteMilestone(${idx})" style="margin-left:8px;">删除</span></td></tr>
+  `).join("");
+}
+
+// 节点类型触发条件配置
+const nodeTypeTrigger = {
+  KYC: "bool", FTT: "bool", DOWNLOAD_APP: "bool",
+  TRADE_VOLUME: "number", NET_DEPOSIT: "number", INVITE: "number",
+  FOLLOW: "follow"
+};
+
+function onNodeTypeChange() {
+  const type = $("mNodeType").value;
+  const triggerType = nodeTypeTrigger[type] || "bool";
+  $("triggerBoolGroup").style.display = triggerType==="bool"?"block":"none";
+  $("triggerNumberGroup").style.display = triggerType==="number"?"block":"none";
+  $("triggerFollowGroup").style.display = triggerType==="follow"?"block":"none";
+}
+
+function getTriggerValue() {
+  const type = $("mNodeType").value;
+  const triggerType = nodeTypeTrigger[type] || "bool";
+  if(triggerType==="bool") return $("mTriggerBool").value;
+  if(triggerType==="number") return $("mTriggerNumber").value;
+  if(triggerType==="follow") return $("mTriggerFollow").value;
+  return "";
+}
+
+function setTriggerValue(nodeType, value) {
+  const triggerType = nodeTypeTrigger[nodeType] || "bool";
+  if(triggerType==="bool") $("mTriggerBool").value = value||"yes";
+  else if(triggerType==="number") $("mTriggerNumber").value = value||"";
+  else if(triggerType==="follow") $("mTriggerFollow").value = value||"X";
+}
+
+function openMilestoneModal(idx=-1) {
+  editingMilestoneIdx = idx;
+  const m = idx>=0?tempMilestones[idx]:null;
+  $("milestoneModalTitle").textContent = m?"编辑里程碑":"新增里程碑";
+  $("mNodeType").value = m?.nodeType||"KYC";
+  onNodeTypeChange();
+  setTriggerValue(m?.nodeType||"KYC", m?.triggerValue);
+  $("mDesc").value = m?.desc||"";
+  $("mRewardDesc").value = m?.rewardDesc||"";
+  $("mLotteryTimes").value = m?.lotteryTimes||1;
+  $("mValidHours").value = m?.validHours||"";
+  $("milestoneModal").classList.add("show");
+}
+function closeMilestoneModal() { $("milestoneModal").classList.remove("show"); }
+function saveMilestone() {
+  const desc = $("mDesc").value.trim();
+  const rewardDesc = $("mRewardDesc").value.trim();
+  const validHours = parseInt($("mValidHours").value);
+  const triggerValue = getTriggerValue();
+  if(!desc) { toast("请输入里程碑描述"); return; }
+  if(!rewardDesc) { toast("请输入奖励描述"); return; }
+  if(validHours && (validHours < 24 || validHours > 8760)) { toast("有效时间范围为24-8760小时"); return; }
+  const data = { nodeType:$("mNodeType").value, triggerValue, desc, rewardDesc, lotteryTimes:parseInt($("mLotteryTimes").value)||1, validHours: validHours||null };
+  if(editingMilestoneIdx>=0) tempMilestones[editingMilestoneIdx]=data; else tempMilestones.push(data);
+  closeMilestoneModal();
+  renderMilestoneTable();
+}
+function editMilestone(idx) { openMilestoneModal(idx); }
+function deleteMilestone(idx) { tempMilestones.splice(idx,1); renderMilestoneTable(); }
+
+// 奖品
+function getPrizeDisplayValue(p) {
+  switch(p.type) {
+    case "TOKEN": return p.amount ? `${p.amount} ${p.currency||""}` : "—";
+    case "FEE_VOUCHER": return p.voucherValue ? `${p.voucherValue} ${p.currency||""}` : "—";
+    case "VIP_VOUCHER": return p.vipLevel ? `${p.vipLevel} ${p.vipDays||""}天` : "—";
+    case "POINTS": return p.pointsValue || "—";
+    case "SPOT_VOUCHER": return p.spotValue ? `${p.spotValue} ${p.currency||""}` : "—";
+    default: return "—";
+  }
+}
+
+function renderPrizeTable() {
+  const tbody = $("prizeTableBody");
+  $("prizeEmpty").style.display = tempPrizes.length?"none":"block";
+  $("prizeOpHeader").style.display = isViewMode?"none":"";
+  $("probSum").textContent = Math.round(tempPrizes.reduce((a,p)=>a+(parseFloat(p.probability)||0),0)*100)/100;
+  tbody.innerHTML = tempPrizes.map((p,idx)=>`
+    <tr><td>${prizeTypes[p.type]||p.type}</td><td>${escapeHtml(p.name||"—")}</td><td>${p.currency||"—"}</td><td>${getPrizeDisplayValue(p)}</td><td>${p.hasLimit==="yes"?"是":"否"}</td><td>${p.hasLimit==="yes"?p.stock:"—"}</td><td>${p.probability}%</td>
+    <td style="display:${isViewMode?"none":""}"><span class="btn-link" onclick="editPrize(${idx})">编辑</span><span class="btn-link danger" onclick="deletePrize(${idx})" style="margin-left:8px;">删除</span></td></tr>
+  `).join("");
+}
+
+function onPrizeTypeChange() {
+  const type = $("pType").value;
+  // 显示/隐藏对应类型的字段
+  document.querySelectorAll(".prize-field").forEach(el => {
+    const types = el.dataset.types?.split(",") || [];
+    el.style.display = types.includes(type) ? "block" : "none";
+  });
+  // 现货仓位券币对选择
+  if(type === "SPOT_VOUCHER") {
+    onSpotUnlimitedChange();
+  }
+}
+
+function onSpotUnlimitedChange() {
+  const unlimited = $("pSpotUnlimited").value === "yes";
+  $("pSpotPairsGroup").style.display = unlimited ? "none" : "block";
+}
+
+function onHasLimitChange() { $("pStockGroup").style.display=$("pHasLimit").value==="yes"?"block":"none"; }
+
+function openPrizeModal(idx=-1) {
+  editingPrizeIdx = idx;
+  const p = idx>=0?tempPrizes[idx]:null;
+  $("prizeModalTitle").textContent = p?"编辑奖品":"新增奖品";
+  $("pType").value = p?.type||"TOKEN";
+  // 通用字段
+  $("pName").value = p?.name||"";
+  $("pCurrency").value = p?.currency||"";
+  $("pHasLimit").value = p?.hasLimit||"no";
+  $("pStock").value = p?.stock||"";
+  $("pProbability").value = p?.probability||"";
+  // Token字段
+  $("pAmount").value = p?.amount||"";
+  // 手续费抵扣券字段
+  $("pVoucherValue").value = p?.voucherValue||"";
+  $("pVoucherDays").value = p?.voucherDays||"";
+  $("pUserLimit").value = p?.userLimit||1;
+  // VIP体验券字段
+  $("pVipLevel").value = p?.vipLevel||"V1";
+  $("pVipDays").value = p?.vipDays||"";
+  $("pVipValidDays").value = p?.vipValidDays||"";
+  // 积分字段
+  $("pPointsValue").value = p?.pointsValue||"";
+  // 现货仓位券字段
+  $("pSpotValue").value = p?.spotValue||"";
+  $("pSpotDuration").value = p?.spotDuration||"";
+  $("pSpotValidDays").value = p?.spotValidDays||"";
+  $("pSpotUnlimited").value = p?.spotUnlimited||"yes";
+  $("pPairBTC").checked = p?.tradePairs?.includes("BTC/USDT")||false;
+  $("pPairETH").checked = p?.tradePairs?.includes("ETH/USDT")||false;
+  $("pPairDOGE").checked = p?.tradePairs?.includes("DOGE/USDT")||false;
+
+  onPrizeTypeChange();
+  onHasLimitChange();
+  $("prizeModal").classList.add("show");
+}
+
+function closePrizeModal() { $("prizeModal").classList.remove("show"); }
+
+function savePrize() {
+  const type = $("pType").value;
+  const probability = parseFloat($("pProbability").value);
+  if(isNaN(probability)||probability<0||probability>100) { toast("概率0-100"); return; }
+
+  const data = { type, hasLimit:$("pHasLimit").value, stock:parseInt($("pStock").value)||0, probability };
+
+  // 根据类型收集不同字段
+  switch(type) {
+    case "TOKEN":
+      data.name = $("pName").value.trim();
+      data.currency = $("pCurrency").value;
+      data.amount = parseFloat($("pAmount").value)||0;
+      if(!data.name) { toast("请输入奖励名称"); return; }
+      break;
+    case "FEE_VOUCHER":
+      data.name = $("pName").value.trim();
+      data.currency = $("pCurrency").value;
+      data.voucherValue = parseFloat($("pVoucherValue").value)||0;
+      data.voucherDays = parseInt($("pVoucherDays").value)||0;
+      data.userLimit = parseInt($("pUserLimit").value)||1;
+      if(!data.name) { toast("请输入奖励名称"); return; }
+      break;
+    case "VIP_VOUCHER":
+      data.name = "VIP体验券";
+      data.vipLevel = $("pVipLevel").value;
+      data.vipDays = parseInt($("pVipDays").value)||0;
+      data.vipValidDays = parseInt($("pVipValidDays").value)||0;
+      data.userLimit = parseInt($("pUserLimit").value)||1;
+      break;
+    case "POINTS":
+      data.name = $("pName").value.trim();
+      data.pointsValue = parseInt($("pPointsValue").value)||0;
+      if(!data.name) { toast("请输入奖励名称"); return; }
+      break;
+    case "SPOT_VOUCHER":
+      data.name = $("pName").value.trim();
+      data.currency = $("pCurrency").value;
+      data.spotValue = parseFloat($("pSpotValue").value)||0;
+      data.spotDuration = parseInt($("pSpotDuration").value)||0;
+      data.spotValidDays = parseInt($("pSpotValidDays").value)||0;
+      data.userLimit = parseInt($("pUserLimit").value)||1;
+      data.spotUnlimited = $("pSpotUnlimited").value;
+      if(data.spotUnlimited==="no") {
+        const pairs = [];
+        if($("pPairBTC").checked) pairs.push("BTC/USDT");
+        if($("pPairETH").checked) pairs.push("ETH/USDT");
+        if($("pPairDOGE").checked) pairs.push("DOGE/USDT");
+        data.tradePairs = pairs;
+      }
+      if(!data.name) { toast("请输入奖励名称"); return; }
+      break;
+  }
+
+  if(editingPrizeIdx>=0) tempPrizes[editingPrizeIdx]=data; else tempPrizes.push(data);
+  closePrizeModal();
+  renderPrizeTable();
+}
+
+function editPrize(idx) { openPrizeModal(idx); }
+function deletePrize(idx) { tempPrizes.splice(idx,1); renderPrizeTable(); }
+
+// 审核
+function auditItem(id) { auditingIds=[id]; $("auditResult").value="approved"; $("auditRemark").value=""; $("auditModal").classList.add("show"); }
+function batchAudit() { auditingIds=Array.from(document.querySelectorAll(".audit-check:checked")).map(cb=>cb.dataset.id); if(auditingIds.length===0)return; $("auditResult").value="approved"; $("auditRemark").value=""; $("auditModal").classList.add("show"); }
+function closeAuditModal() { $("auditModal").classList.remove("show"); auditingIds=[]; }
+function submitAudit() {
+  const result = $("auditResult").value;
+  auditingIds.forEach(id=>{
+    const item = auditList.find(x=>x.id===id);
+    if(item && item.status==="pending") {
+      item.status = result;
+      if(result==="approved" && !manageList.find(x=>x.id===id)) {
+        manageList.unshift({...item, shelf:"on", participants:0});
+      }
+    }
+  });
+  saveAuditData();
+  saveManageData();
+  closeAuditModal();
+  renderAuditList();
+  renderManageList();
+  toast(`已${result==="approved"?"通过":"拒绝"} ${auditingIds.length} 条`);
+}
+
+function viewAuditItem(id) {
+  const item = auditList.find(x=>x.id===id);
+  if(!item) return;
+  // 打开只读查看弹窗
+  openConfigModal(id, null, true);
+}
+
+function closeConfirmModal() { $("confirmModal").classList.remove("show"); }
+function confirmAction() { if(confirmCallback) confirmCallback(); closeConfirmModal(); }
+
+// 弹窗外部关闭
+["configModal","milestoneModal","prizeModal","auditModal","confirmModal","userDetailModal"].forEach(id=>{
+  $(id).addEventListener("click",e=>{ if(e.target===$(id)) $(id).classList.remove("show"); });
+});
+
+// 初始化
+loadData();
+renderAuditList();
+renderManageList();
+</script>
+</body>
+</html>
