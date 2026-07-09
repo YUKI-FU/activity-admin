@@ -18,33 +18,6 @@
     /* 容器 */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
-    /* 顶部资源位 */
-    .banner-placeholder {
-      width: 100%;
-      height: 400px;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px dashed #444;
-      position: relative;
-    }
-    .banner-placeholder::before {
-      content: "📷 顶部资源位 (Banner区域)";
-      font-size: 24px;
-      color: #666;
-      background: rgba(0,0,0,0.5);
-      padding: 20px 40px;
-      border-radius: 8px;
-    }
-    .banner-placeholder::after {
-      content: "建议尺寸: 1200 x 400px";
-      position: absolute;
-      bottom: 20px;
-      font-size: 14px;
-      color: #555;
-    }
-
     /* 活动头部信息 */
     .activity-header {
       padding: 40px 0;
@@ -487,9 +460,6 @@
 </head>
 <body>
 
-  <!-- 顶部Banner资源位 -->
-  <div class="banner-placeholder"></div>
-
   <div class="container">
     <!-- 活动头部信息 -->
     <div class="activity-header">
@@ -509,8 +479,7 @@
       </div>
 
       <div class="header-image-placeholder">
-        <span>📷 右侧装饰图资源位</span>
-        <span>建议尺寸: 400 x 300px</span>
+        <span>📷 资源位</span>
       </div>
     </div>
 
