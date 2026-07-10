@@ -322,8 +322,20 @@
       cursor: pointer;
       border: none;
       white-space: nowrap;
+      transition: all 0.2s;
     }
     .btn-task:hover { background: #b8ef00; }
+    .btn-task.claim {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931a 100%);
+      color: #fff;
+    }
+    .btn-task.claim:hover { background: linear-gradient(135deg, #ff7d4d 0%, #ffa32a 100%); }
+    .btn-task.completed {
+      background: #333;
+      color: #666;
+      cursor: default;
+    }
+    .btn-task.completed:hover { background: #333; }
 
     /* 活动规则 */
     .rules-section {
@@ -772,7 +784,7 @@
       </div>
 
       <div class="task-list">
-        <!-- 任务1 -->
+        <!-- 任务1 - 去完成状态 -->
         <div class="task-card">
           <div class="task-reward">
             <div class="task-reward-num">1</div>
@@ -782,14 +794,14 @@
             <div class="task-name">首次现货交易 ≥100 USDT</div>
             <div class="task-market">（查看交易指定市场）</div>
             <div class="task-progress">
-              <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-              <span class="progress-text">0/100 USDT</span>
+              <div class="progress-bar"><div class="progress-fill" style="width: 30%;"></div></div>
+              <span class="progress-text">30/100 USDT</span>
             </div>
           </div>
           <button class="btn-task">去完成</button>
         </div>
 
-        <!-- 任务2 -->
+        <!-- 任务2 - 领取奖励状态 -->
         <div class="task-card">
           <div class="task-reward">
             <div class="task-reward-num">1</div>
@@ -799,15 +811,15 @@
             <div class="task-name">首次合约交易 ≥ 1,000 USDT</div>
             <div class="task-market">（查看交易指定市场）</div>
             <div class="task-progress">
-              <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-              <span class="progress-text">0/1,000 USDT</span>
+              <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+              <span class="progress-text">1,000/1,000 USDT</span>
             </div>
           </div>
-          <button class="btn-task">去完成</button>
+          <button class="btn-task claim">领取奖励</button>
         </div>
 
-        <!-- 任务3 - 可重复 -->
-        <div class="task-card repeatable" data-repeat-text="每次完成任务均可获得奖励，最多可完成2次/已完成0次">
+        <!-- 任务3 - 可重复 领取奖励状态 -->
+        <div class="task-card repeatable" data-repeat-text="每次完成任务均可获得奖励，最多可完成2次/已完成1次">
           <div class="task-reward">
             <div class="task-reward-num">1</div>
             <div class="task-reward-label">抽奖次数</div>
@@ -816,15 +828,15 @@
             <div class="task-name">累计现货交易 ≥ 200 USDT</div>
             <div class="task-market">（查看交易指定市场）</div>
             <div class="task-progress">
-              <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-              <span class="progress-text">0/200 USDT</span>
+              <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+              <span class="progress-text">200/200 USDT</span>
             </div>
           </div>
-          <button class="btn-task">去完成</button>
+          <button class="btn-task claim">领取奖励</button>
         </div>
 
-        <!-- 任务4 - 可重复 -->
-        <div class="task-card repeatable" data-repeat-text="每次完成任务均可获得奖励，最多可完成4次/已完成0次">
+        <!-- 任务4 - 可重复 已完成状态 -->
+        <div class="task-card repeatable" data-repeat-text="每次完成任务均可获得奖励，最多可完成4次/已完成4次">
           <div class="task-reward">
             <div class="task-reward-num">1</div>
             <div class="task-reward-label">抽奖次数</div>
@@ -833,14 +845,14 @@
             <div class="task-name">累计合约交易 ≥ 500 USDT</div>
             <div class="task-market">（查看交易指定市场）</div>
             <div class="task-progress">
-              <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-              <span class="progress-text">0/500 USDT</span>
+              <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+              <span class="progress-text">2,000/2,000 USDT</span>
             </div>
           </div>
-          <button class="btn-task">去完成</button>
+          <button class="btn-task completed">已完成</button>
         </div>
 
-        <!-- 任务5 -->
+        <!-- 任务5 - 已完成状态 -->
         <div class="task-card">
           <div class="task-reward">
             <div class="task-reward-num">1</div>
@@ -850,14 +862,14 @@
             <div class="task-name">完成KYC认证</div>
             <div class="task-market">（完成身份认证）</div>
             <div class="task-progress">
-              <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-              <span class="progress-text">未完成</span>
+              <div class="progress-bar"><div class="progress-fill" style="width: 100%;"></div></div>
+              <span class="progress-text">已完成</span>
             </div>
           </div>
-          <button class="btn-task">去完成</button>
+          <button class="btn-task completed">已完成</button>
         </div>
 
-        <!-- 任务6 -->
+        <!-- 任务6 - 去完成状态 -->
         <div class="task-card">
           <div class="task-reward">
             <div class="task-reward-num">2</div>
