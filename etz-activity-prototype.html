@@ -357,6 +357,133 @@
       border-radius: 8px;
     }
 
+    /* 弹窗样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #1a1a1a;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+    }
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .modal-header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .modal-more-link {
+      color: #888;
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .modal-more-link:hover { color: #c8ff00; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: #888;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-close:hover { color: #fff; }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: #555;
+    }
+    .empty-icon {
+      width: 80px;
+      height: 80px;
+      background: #222;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 36px;
+    }
+    .empty-text { font-size: 14px; }
+    /* 中奖记录列表 */
+    .record-list { display: flex; flex-direction: column; gap: 12px; }
+    .record-item {
+      background: #222;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .record-info { flex: 1; }
+    .record-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .record-time { font-size: 12px; color: #888; }
+    .record-status { font-size: 13px; padding: 4px 12px; border-radius: 4px; }
+    .record-status.claimed { background: rgba(200,255,0,0.1); color: #c8ff00; }
+    .record-status.expired { background: rgba(136,136,136,0.1); color: #888; }
+
+    /* 抽奖次数记录 */
+    .lottery-record-item {
+      background: #222;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .lottery-record-type {
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      min-width: 48px;
+      text-align: center;
+    }
+    .lottery-record-type.gain { background: rgba(200,255,0,0.15); color: #c8ff00; }
+    .lottery-record-type.use { background: rgba(255,100,100,0.15); color: #ff6b6b; }
+    .lottery-record-detail { flex: 1; }
+    .lottery-record-detail-text { font-size: 14px; margin-bottom: 2px; }
+    .lottery-record-detail-time { font-size: 12px; color: #666; }
+    .lottery-record-count { font-size: 16px; font-weight: bold; min-width: 40px; text-align: right; }
+    .lottery-record-count.plus { color: #c8ff00; }
+    .lottery-record-count.minus { color: #ff6b6b; }
+
     /* Footer */
     .footer {
       background: #111;
@@ -512,7 +639,7 @@
       <div class="prize-pool">
         <div class="prize-header">
           <span class="prize-title">活动奖池</span>
-          <a href="#" class="prize-link">中奖记录</a>
+          <a href="javascript:openRecordModal()" class="prize-link">中奖记录</a>
         </div>
         <div class="prize-list">
           <div class="prize-item">
@@ -543,7 +670,7 @@
     <div class="tasks-section">
       <div class="section-header">
         <h2 class="section-title">完成任意<span class="highlight">6</span>项任务，可获得额外<span class="highlight">30 USDT</span>空投（先到先得）</h2>
-        <a href="#" class="section-link">奖励记录</a>
+        <a href="javascript:openLotteryRecordModal()" class="section-link">奖励记录</a>
       </div>
 
       <div class="task-list">
@@ -761,6 +888,152 @@
       </div>
     </div>
   </footer>
+
+  <!-- 奖励记录弹窗 -->
+  <div class="modal-overlay" id="lotteryRecordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>奖励记录</h3>
+        <div class="modal-header-right">
+          <button class="modal-close" onclick="closeLotteryRecordModal()">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <!-- 有数据时显示列表 -->
+        <div class="record-list" id="lotteryRecordList">
+          <div class="lottery-record-item">
+            <span class="lottery-record-type gain">获得</span>
+            <div class="lottery-record-detail">
+              <div class="lottery-record-detail-text">完成任务：首次现货交易 ≥100 USDT</div>
+              <div class="lottery-record-detail-time">2026-07-08 15:30:25</div>
+            </div>
+            <span class="lottery-record-count plus">+1</span>
+          </div>
+          <div class="lottery-record-item">
+            <span class="lottery-record-type use">使用</span>
+            <div class="lottery-record-detail">
+              <div class="lottery-record-detail-text">抽奖消耗</div>
+              <div class="lottery-record-detail-time">2026-07-08 15:32:10</div>
+            </div>
+            <span class="lottery-record-count minus">-1</span>
+          </div>
+          <div class="lottery-record-item">
+            <span class="lottery-record-type gain">获得</span>
+            <div class="lottery-record-detail">
+              <div class="lottery-record-detail-text">完成任务：首次合约交易 ≥ 1,000 USDT</div>
+              <div class="lottery-record-detail-time">2026-07-07 10:15:42</div>
+            </div>
+            <span class="lottery-record-count plus">+1</span>
+          </div>
+          <div class="lottery-record-item">
+            <span class="lottery-record-type gain">获得</span>
+            <div class="lottery-record-detail">
+              <div class="lottery-record-detail-text">完成任务：累计现货交易 ≥ 200 USDT</div>
+              <div class="lottery-record-detail-time">2026-07-06 18:20:33</div>
+            </div>
+            <span class="lottery-record-count plus">+1</span>
+          </div>
+          <div class="lottery-record-item">
+            <span class="lottery-record-type use">使用</span>
+            <div class="lottery-record-detail">
+              <div class="lottery-record-detail-text">抽奖消耗（5连抽）</div>
+              <div class="lottery-record-detail-time">2026-07-06 18:25:00</div>
+            </div>
+            <span class="lottery-record-count minus">-5</span>
+          </div>
+        </div>
+        <!-- 无数据时显示空状态 -->
+        <div class="empty-state" id="lotteryEmptyState" style="display: none;">
+          <div class="empty-icon">📄</div>
+          <span class="empty-text">暂无数据</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中奖记录弹窗 -->
+  <div class="modal-overlay" id="recordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>中奖记录</h3>
+        <div class="modal-header-right">
+          <a href="#" class="modal-more-link">查看更多</a>
+          <button class="modal-close" onclick="closeRecordModal()">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <!-- 有数据时显示列表 -->
+        <div class="record-list" id="recordList" style="display: none;">
+          <div class="record-item">
+            <div class="record-info">
+              <div class="record-name">10 USDT</div>
+              <div class="record-time">2026-07-08 15:30:25</div>
+            </div>
+            <span class="record-status claimed">已领取</span>
+          </div>
+          <div class="record-item">
+            <div class="record-info">
+              <div class="record-name">5 USDT 合约抵扣券</div>
+              <div class="record-time">2026-07-07 10:15:42</div>
+            </div>
+            <span class="record-status claimed">已领取</span>
+          </div>
+          <div class="record-item">
+            <div class="record-info">
+              <div class="record-name">50 USDT</div>
+              <div class="record-time">2026-07-05 09:22:18</div>
+            </div>
+            <span class="record-status expired">已过期</span>
+          </div>
+        </div>
+        <!-- 无数据时显示空状态 -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">📄</div>
+          <span class="empty-text">暂无数据</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 抽奖次数记录弹窗
+    function openLotteryRecordModal() {
+      document.getElementById('lotteryRecordModal').classList.add('show');
+    }
+    function closeLotteryRecordModal() {
+      document.getElementById('lotteryRecordModal').classList.remove('show');
+    }
+    document.getElementById('lotteryRecordModal').addEventListener('click', function(e) {
+      if (e.target === this) closeLotteryRecordModal();
+    });
+
+    // 中奖记录弹窗
+    function openRecordModal() {
+      document.getElementById('recordModal').classList.add('show');
+    }
+    function closeRecordModal() {
+      document.getElementById('recordModal').classList.remove('show');
+    }
+    document.getElementById('recordModal').addEventListener('click', function(e) {
+      if (e.target === this) closeRecordModal();
+    });
+
+    // ESC关闭所有弹窗
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeRecordModal();
+        closeLotteryRecordModal();
+      }
+    });
+
+    // 切换显示数据/空状态（演示用）
+    function toggleRecordData(hasData) {
+      document.getElementById('recordList').style.display = hasData ? 'flex' : 'none';
+      document.getElementById('emptyState').style.display = hasData ? 'none' : 'flex';
+    }
+    // 默认显示示例数据
+    toggleRecordData(true);
+  </script>
 
 </body>
 </html>
