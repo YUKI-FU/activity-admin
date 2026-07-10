@@ -72,6 +72,16 @@
       text-decoration: none;
       transform: translateY(-2px);
     }
+    .btn-signup.signed {
+      background: #4a5a00;
+      color: #333;
+      cursor: default;
+      border: 1px solid #5a6a10;
+    }
+    .btn-signup.signed:hover {
+      background: #4a5a00;
+      transform: none;
+    }
 
     /* 右侧图片资源位 */
     .header-image-placeholder {
@@ -602,7 +612,7 @@
           <span class="countdown-num">53</span><span class="countdown-unit">秒</span>
         </div>
 
-        <a href="#" class="btn-signup">立即报名</a>
+        <a href="javascript:toggleSignup()" class="btn-signup" id="signupBtn">立即报名</a>
       </div>
 
       <div class="header-image-placeholder">
@@ -1033,6 +1043,18 @@
     }
     // 默认显示示例数据
     toggleRecordData(true);
+
+    // 报名按钮切换
+    function toggleSignup() {
+      const btn = document.getElementById('signupBtn');
+      if (btn.classList.contains('signed')) {
+        btn.classList.remove('signed');
+        btn.textContent = '立即报名';
+      } else {
+        btn.classList.add('signed');
+        btn.textContent = '已报名';
+      }
+    }
   </script>
 
 </body>
