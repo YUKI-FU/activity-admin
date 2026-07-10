@@ -494,6 +494,94 @@
     .lottery-record-count.plus { color: #c8ff00; }
     .lottery-record-count.minus { color: #ff6b6b; }
 
+    /* 抽奖结果弹窗 */
+    .lottery-result-modal {
+      background: #1a1a1a;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      overflow: hidden;
+      position: relative;
+    }
+    .lottery-result-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: #888;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .lottery-result-close:hover { color: #fff; }
+    .lottery-result-content {
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+    .lottery-result-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 24px;
+    }
+    .lottery-result-icon {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 24px;
+      background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+    }
+    .lottery-result-prize {
+      font-size: 20px;
+      margin-bottom: 32px;
+    }
+    .lottery-result-prize .highlight { color: #c8ff00; font-weight: bold; }
+    .lottery-result-btn {
+      display: inline-block;
+      padding: 14px 48px;
+      border-radius: 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .lottery-result-btn.primary {
+      background: #4CAF50;
+      color: #fff;
+    }
+    .lottery-result-btn.primary:hover { background: #45a049; }
+    .lottery-result-btn.secondary {
+      background: #3a3a3a;
+      color: #fff;
+    }
+    .lottery-result-btn.secondary:hover { background: #4a4a4a; }
+    /* 多奖励列表 */
+    .lottery-multi-list {
+      text-align: left;
+      background: #222;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .lottery-multi-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+    }
+    .lottery-multi-item:last-child { border-bottom: none; }
+    .lottery-multi-name { font-size: 14px; }
+    .lottery-multi-count { color: #c8ff00; font-weight: bold; }
+
     /* Footer */
     .footer {
       background: #111;
@@ -639,8 +727,8 @@
 
         <!-- 抽奖按钮 -->
         <div class="lottery-buttons">
-          <button class="btn-lottery">抽1次</button>
-          <button class="btn-lottery">抽5次</button>
+          <button class="btn-lottery" onclick="doLottery()">抽1次</button>
+          <button class="btn-lottery" onclick="doLottery5()">抽5次</button>
         </div>
         <div class="remaining-times">剩余抽奖次数：<span>0</span></div>
       </div>
@@ -899,6 +987,59 @@
     </div>
   </footer>
 
+  <!-- 单次中奖弹窗 -->
+  <div class="modal-overlay" id="winModal">
+    <div class="lottery-result-modal">
+      <button class="lottery-result-close" onclick="closeWinModal()">&times;</button>
+      <div class="lottery-result-content">
+        <div class="lottery-result-title">领取成功！</div>
+        <div class="lottery-result-icon">💰</div>
+        <div class="lottery-result-prize">恭喜获得<span class="highlight" id="winPrizeText">10积分</span></div>
+        <button class="lottery-result-btn primary" onclick="closeWinModal();openRecordModal();">查看奖励</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 未中奖弹窗 -->
+  <div class="modal-overlay" id="loseModal">
+    <div class="lottery-result-modal">
+      <button class="lottery-result-close" onclick="closeLoseModal()">&times;</button>
+      <div class="lottery-result-content">
+        <div class="lottery-result-title">谢谢参与</div>
+        <div class="lottery-result-icon">🎁</div>
+        <div class="lottery-result-prize">很遗憾，未能中奖</div>
+        <button class="lottery-result-btn secondary" onclick="closeLoseModal()">继续抽奖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 多次中奖弹窗 -->
+  <div class="modal-overlay" id="multiWinModal">
+    <div class="lottery-result-modal">
+      <button class="lottery-result-close" onclick="closeMultiWinModal()">&times;</button>
+      <div class="lottery-result-content">
+        <div class="lottery-result-title">领取成功！</div>
+        <div class="lottery-result-icon">🎉</div>
+        <div class="lottery-result-prize">恭喜获得以下奖励</div>
+        <div class="lottery-multi-list" id="multiWinList">
+          <div class="lottery-multi-item">
+            <span class="lottery-multi-name">10 USDT</span>
+            <span class="lottery-multi-count">x1</span>
+          </div>
+          <div class="lottery-multi-item">
+            <span class="lottery-multi-name">5 USDT 合约抵扣券</span>
+            <span class="lottery-multi-count">x2</span>
+          </div>
+          <div class="lottery-multi-item">
+            <span class="lottery-multi-name">积分</span>
+            <span class="lottery-multi-count">x50</span>
+          </div>
+        </div>
+        <button class="lottery-result-btn primary" onclick="closeMultiWinModal();openRecordModal();">查看奖励</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 奖励记录弹窗 -->
   <div class="modal-overlay" id="lotteryRecordModal">
     <div class="modal">
@@ -1054,6 +1195,54 @@
         btn.classList.add('signed');
         btn.textContent = '已报名';
       }
+    }
+
+    // 抽奖结果弹窗
+    function openWinModal(prize) {
+      document.getElementById('winPrizeText').textContent = prize || '10积分';
+      document.getElementById('winModal').classList.add('show');
+    }
+    function closeWinModal() {
+      document.getElementById('winModal').classList.remove('show');
+    }
+    document.getElementById('winModal').addEventListener('click', function(e) {
+      if (e.target === this) closeWinModal();
+    });
+
+    function openLoseModal() {
+      document.getElementById('loseModal').classList.add('show');
+    }
+    function closeLoseModal() {
+      document.getElementById('loseModal').classList.remove('show');
+    }
+    document.getElementById('loseModal').addEventListener('click', function(e) {
+      if (e.target === this) closeLoseModal();
+    });
+
+    function openMultiWinModal() {
+      document.getElementById('multiWinModal').classList.add('show');
+    }
+    function closeMultiWinModal() {
+      document.getElementById('multiWinModal').classList.remove('show');
+    }
+    document.getElementById('multiWinModal').addEventListener('click', function(e) {
+      if (e.target === this) closeMultiWinModal();
+    });
+
+    // 模拟抽奖（单抽）
+    function doLottery() {
+      const prizes = ['10 USDT', '5 USDT', '50积分', '合约抵扣券 5U', null, null];
+      const result = prizes[Math.floor(Math.random() * prizes.length)];
+      if (result) {
+        openWinModal(result);
+      } else {
+        openLoseModal();
+      }
+    }
+
+    // 模拟抽奖（5连抽）
+    function doLottery5() {
+      openMultiWinModal();
     }
   </script>
 
